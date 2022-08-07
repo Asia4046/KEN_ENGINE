@@ -7,6 +7,8 @@
 #include "core/event.h"
 #include "core/input.h"
 
+#include "containers/darray.h"
+
 #include <xcb/xcb.h>
 #include <X11/keysym.h>
 #include <X11/XKBlib.h>  // sudo apt-get install libx11-dev
@@ -97,12 +99,12 @@ b8 platform_startup(
         XCB_COPY_FROM_PARENT,  // depth
         state->window,
         state->screen->root,            // parent
-        x,                              // x
-        y,                              // y
-        width,                          // width
-        height,                         // height
+        x,                              //x
+        y,                              //y
+        width,                          //width
+        height,                         //height
         0,                              // No border
-        XCB_WINDOW_CLASS_INPUT_OUTPUT,  // class
+        XCB_WINDOW_CLASS_INPUT_OUTPUT,  //class
         state->screen->root_visual,
         event_mask,
         value_list);
@@ -195,12 +197,12 @@ b8 platform_pump_messages(platform_state* plat_state) {
             case XCB_KEY_PRESS:
             case XCB_KEY_RELEASE: {
                 // Key press event - xcb_key_press_event_t and xcb_key_release_event_t are the same
-                xcb_key_press_event_t* kb_event = (xcb_key_press_event_t*)event;
+                xcb_key_press_event_t *kb_event = (xcb_key_press_event_t *)event;
                 b8 pressed = event->response_type == XCB_KEY_PRESS;
                 xcb_keycode_t code = kb_event->detail;
                 KeySym key_sym = XkbKeycodeToKeysym(
                     state->display,
-                    (KeyCode)code,  // event.xkey.keycode,
+                    (KeyCode)code,  //event.xkey.keycode,
                     0,
                     code & ShiftMask ? 1 : 0);
 
@@ -211,7 +213,7 @@ b8 platform_pump_messages(platform_state* plat_state) {
             } break;
             case XCB_BUTTON_PRESS:
             case XCB_BUTTON_RELEASE: {
-                xcb_button_press_event_t* mouse_event = (xcb_button_press_event_t*)event;
+                xcb_button_press_event_t *mouse_event = (xcb_button_press_event_t *)event;
                 b8 pressed = event->response_type == XCB_BUTTON_PRESS;
                 buttons mouse_button = BUTTON_MAX_BUTTONS;
                 switch (mouse_event->detail) {
@@ -231,15 +233,13 @@ b8 platform_pump_messages(platform_state* plat_state) {
                     input_process_button(mouse_button, pressed);
                 }
             } break;
-
             case XCB_MOTION_NOTIFY: {
-                //Mouse move
+                // Mouse move
                 xcb_motion_notify_event_t *move_event = (xcb_motion_notify_event_t *)event;
 
                 // Pass over to the input subsystem.
                 input_process_mouse_move(move_event->event_x, move_event->event_y);
             } break;
-
             case XCB_CONFIGURE_NOTIFY: {
                 // TODO: Resizing
             } break;
@@ -307,6 +307,10 @@ void platform_sleep(u64 ms) {
     }
     usleep((ms % 1000) * 1000);
 #endif
+}
+
+void platform_get_required_extension_names(const char ***names_darray) {
+    darray_push(*names_darray, &"VK_KHR_xcb_surface");  // VK_KHR_xlib_surface?
 }
 
 // Key translation
